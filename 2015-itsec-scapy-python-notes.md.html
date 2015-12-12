@@ -1,0 +1,128 @@
+<meta charset="utf-8">
+
+**Notes for 2015 ITSec**
+
+### Scapy http://www.secdev.org/projects/scapy/doc/usage.html
+On Ubuntu/Debian: **sudo apt-get install python-scapy**
+
+
+~~~~~~~~~~~~~~~~~~~~
+from scapy.all import *
+import sys
+p=rdpcap("<file>.pcap")
+~~~~~~~~~~~~~~~~~~~~
+
+
+
+~~~~~~~~~~~~~~~~~~~~
+lsc()
+p.nsummary()		# line per packet summary with line numbers
+p.summary()		# all summary with out line numbers
+p.hexdump()		# hexdump (all packet) everything
+p.hexraw()		# for all packets only dump payloads 
+linehexdump(p[0])
+~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~
+p[<number>].load	# only payload of the packet
+p[<numebr>].sprintf("%TCP.payload%") # only payload of the packet
+~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~
+ls(p[<number>]) 	# all details of the packet
+p[<number>].payload	# sporty version of all the details
+p[<number>].show()  	# all details with protocol information
+~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+~~~~~~~~~~~~~~~~~~~~
+# print all packets with those attributes between percent signs
+p.nsummary( lambda(r) : r.sprintf(" %IP.src%:%TCP.sport% -> %IP.dst%:%TCP.dport%  %2s,TCP.flags% : %IP.len% ") ) 
+p.nsummary( lambda(r) : r.sprintf("{%IP.src%:%TCP.sport% -> %IP.dst%:%TCP.dport%  %TCP.flags% : %IP.len%}{Raw:%Raw.load%}") )
+~~~~~~~~~~~~~~~~~~~~
+
+### Python file operations
+
+~~~~~~~~~~~~~~~~~~~~
+f = open("<filename>", "r") #opens file for reading
+f.read(n)                   # reads n characters or if n is blank the entire file.
+file.readline(n)            # reads a line from file
+~~~~~~~~~~~~~~~~~~~~
+and
+~~~~~~~~~~~~~~~~~~~~
+f = open("<filename>","w") #opens file for writing or
+f = open("<filename>","a") #opens file for appending
+f.write(<variable>)
+f.close()
+~~~~~~~~~~~~~~~~~~~~
+
+### eine kleine XOR primer
+Xor
+:  Exclusive or is a logical operation that outputs true only when both inputs differ (one is true, the other is false).
+(In python it is the '**^**' operator and it expects integers.)
+
+***********************************************************************
+*                                                                     *
+*                                                                     *
+*                                                                     *
+*                  For example:                                       *
+*                                                                     *
+*                                                                     *
+*.----.   .----.               .----.   .----.                        *
+*| af |   | 13 |               | bc |   | af |                        *
+*'----'   '----'               '----'   '----'                        *
+*     \   /          but also       \   /                             *
+*      v v                           v v                              *
+*    .----.                        .----.                             *
+*    | bc |                        | 13 |                             *
+*    '----'                        '----'                             *
+*                                                                     *
+*                                                                     *
+*                                                                     *
+*                                                                     *
+***********************************************************************
+
+In literature, usually denoted by **⊕** .
+
+### Decryption in Pyton
+Helpful lines:
+~~~~~~~~~~~~~~~~
+key = bytearray([ int('<hex>',16), int('<hex>',16) ])
+
+decrypted = ''
+for i in range(len(p[<packetno>].sprintf("%TCP.payload%"))):
+   decrypted = decrypted + chr( ord( p[<pno>].sprintf("%TCP.payload%")[i] )^key[i%2] )
+~~~~~~~~~~~~~~~~
+
+A Function that does decryption
+~~~~~~~~~~~~~~~~
+def decrypt(pno):
+   payload = p[int(pno)].sprintf("%TCP.payload%")
+   decrypted = ''
+   for i in range(len(payload)):
+      decrypted = decrypted + chr( ord( payload[i] )^key[i%2] )
+   f = open("decrypted" + str(pno),"w")
+   f.write(decrypted)
+   f.close()
+~~~~~~~~~~~~~~~~
+
+### Why XOR anyway?
+
+Uniform Distribution - the numbers in a designated range must occur equally often.
+
+Given the distribution, XOR keeps the distribution. This is especially important if the distribution is random.
+
+
+
+
+<style> h1:before, h2:before, h3:before { content: none; } </style>
+<style> .markdeepFooter { display: none; } </style>
+<!-- Markdeep: --><style class="fallback">body{white-space:pre;font-family:monospace}</style><script src="markdeep.min.js"></script><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script>
